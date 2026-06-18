@@ -11,35 +11,85 @@ export function VerifyEmailPage() {
 
   useEffect(() => {
     const verifyEmail = async () => {
+      // Approach 1: token_hash in query params (our custom emailRedirectTo)
       const token_hash = searchParams.get('token_hash');
       const type = searchParams.get('type');
 
-      if (!token_hash || !type) {
-        setStatus('error');
-        setMessage('Invalid verification link. Please try again.');
+      if (token_hash && type) {
+        try {
+          const { error } = await supabase.auth.verifyOtp({
+            token_hash,
+            type: type as 'signup' | 'email_change' | 'recovery',
+          });
+
+          if (error) {
+            setStatus('error');
+            setMessage(error.message);
+          } else {
+            setStatus('success');
+            setMessage('Your email has been verified successfully!');
+            // Sign them out so they log in fresh
+            await supabase.auth.signOut();
+            setTimeout(() => navigate('/login', { replace: true }), 2500);
+          }
+        } catch {
+          setStatus('error');
+          setMessage('An unexpected error occurred. Please try again.');
+        }
         return;
       }
 
-      try {
-        const { error } = await supabase.auth.verifyOtp({
-          token_hash,
-          type: type as 'signup' | 'email_change' | 'recovery',
+      // Approach 2: Supabase {{ .ConfirmationURL }} redirects back with session in URL hash
+      // The Supabase client auto-processes the hash fragment — listen for the auth event
+      const hash = window.location.hash;
+      if (hash && (hash.includes('access_token') || hash.includes('type=signup') || hash.includes('type=recovery'))) {
+        // Supabase client picks up the hash automatically; wait for session
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+          if (event === 'SIGNED_IN' && session) {
+            subscription.unsubscribe();
+            setStatus('success');
+            setMessage('Your email has been verified successfully!');
+            // Sign out so they log in properly (confirmed state)
+            supabase.auth.signOut().then(() => {
+              setTimeout(() => navigate('/login', { replace: true }), 2500);
+            });
+          }
         });
 
-        if (error) {
-          setStatus('error');
-          setMessage(error.message);
-        } else {
-          setStatus('success');
-          setMessage('Your email has been verified successfully!');
-          setTimeout(() => {
-            navigate('/login');
-          }, 2000);
-        }
-      } catch {
-        setStatus('error');
-        setMessage('An unexpected error occurred. Please try again.');
+        // Fallback: if no event fires in 5s, get current session
+        const timeout = setTimeout(async () => {
+          subscription.unsubscribe();
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session) {
+            setStatus('success');
+            setMessage('Your email has been verified successfully!');
+            await supabase.auth.signOut();
+            setTimeout(() => navigate('/login', { replace: true }), 2500);
+          } else {
+            setStatus('error');
+            setMessage('Verification failed or link has expired. Please try again.');
+          }
+        }, 5000);
+
+        return () => {
+          subscription.unsubscribe();
+          clearTimeout(timeout);
+        };
       }
+
+      // Approach 3: Already verified — session exists (user clicked confirm and was redirected here)
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user?.email_confirmed_at) {
+        setStatus('success');
+        setMessage('Your email has been verified successfully!');
+        await supabase.auth.signOut();
+        setTimeout(() => navigate('/login', { replace: true }), 2500);
+        return;
+      }
+
+      // Nothing matched — show error
+      setStatus('error');
+      setMessage('Invalid or expired verification link. Please request a new confirmation email.');
     };
 
     verifyEmail();
@@ -71,8 +121,11 @@ export function VerifyEmailPage() {
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
                 Email verified!
               </h1>
-              <p className="text-gray-500 dark:text-gray-400">
-                {message} Redirecting you to sign in...
+              <p className="text-gray-500 dark:text-gray-400 mb-4">
+                {message}
+              </p>
+              <p className="text-sm text-emerald-600 dark:text-emerald-400 font-medium">
+                Redirecting you to sign in...
               </p>
             </>
           )}
