@@ -6,6 +6,7 @@ import { LoginPage } from './components/auth/LoginPage';
 import { SignupPage } from './components/auth/SignupPage';
 import { VerifyEmailPage } from './components/auth/VerifyEmailPage';
 import { ForgotPasswordPage } from './components/auth/ForgotPasswordPage';
+import { AuthCallback } from './components/auth/AuthCallback';
 import { LandingPage } from './components/landing/LandingPage';
 import { Layout } from './components/layout/Layout';
 import { Dashboard } from './components/dashboard/Dashboard';
@@ -43,6 +44,7 @@ function AppRoutes() {
       />
       <Route path="/verify-email" element={<VerifyEmailPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/auth/callback" element={<AuthCallback />} />
 
       {/* Protected routes */}
       <Route
