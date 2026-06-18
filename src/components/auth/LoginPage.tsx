@@ -181,18 +181,18 @@ export function LoginPage() {
 
           <div className="my-6 flex items-center gap-4">
             <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700"></div>
-            <span className="text-sm text-gray-400 dark:text-gray-500">or continue with</span>
+            {/* <span className="text-sm text-gray-400 dark:text-gray-500">or continue with</span> */}
             <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700"></div>
           </div>
 
-          <button
+          {/* <button
             onClick={handleGoogleLogin}
             disabled={loading}
             className="w-full py-3.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-medium rounded-xl hover:bg-gray-50 dark:hover:bg-gray-600 focus:ring-4 focus:ring-gray-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-3"
           >
             <Chrome className="w-5 h-5 text-[#4285F4]" />
             Continue with Google
-          </button>
+          </button> */}
 
           <p className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
             Don't have an account?{' '}
