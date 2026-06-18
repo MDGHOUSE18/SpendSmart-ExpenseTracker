@@ -42,7 +42,7 @@ Check out the live application: [SpendSmart Expense Tracker](https://expense-tra
 
 ## 🛠️ Tech Stack
 
-- **Frontend Framework:** Angular 17+
+- **Frontend Framework:** Angular 
 - **Language:** TypeScript
 - **Styling:** SCSS / Tailwind CSS
 - **Charts:** Chart.js / Ngx-Charts
